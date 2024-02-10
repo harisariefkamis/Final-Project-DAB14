@@ -1,0 +1,119 @@
+select * from `projectbigquery-412811.finalprojectsql14.order_detail` limit 100
+select * from `projectbigquery-412811.finalprojectsql14.sku_detail` limit 50
+
+# 1.Selama transaksi yang terjadi selama 2021, pada bulan apa total nilai transaksi
+# (after_discount) paling besar? Gunakan is_valid = 1 untuk memfilter data transaksi.
+# Source table: order_detail
+
+SELECT
+    EXTRACT(MONTH FROM order_date) AS Bulan,
+    SUM(after_discount) AS Total_Nilai_Transaksi
+FROM
+    `projectbigquery-412811.finalprojectsql14.order_detail`
+WHERE
+    EXTRACT(YEAR FROM order_date) = 2021
+    AND is_valid = 1
+GROUP BY
+    Bulan
+ORDER BY
+    Total_Nilai_Transaksi DESC
+LIMIT 5;
+
+# 2.transaksi pada tahun 2022, kategori apa yang menghasilkan nilai transaksi paling
+# besar? Gunakan is_valid = 1 untuk memfilter data transaksi.
+# Source table: order_detail, sku_detail
+
+select
+  c.category as Category_Barang
+  ,round(sum(d.after_discount),2) as Total_Transaksi_
+from
+    `projectbigquery-412811.finalprojectsql14.order_detail` as d
+join
+    `projectbigquery-412811.finalprojectsql14.sku_detail` as c
+on d.sku_id = c.sku_id
+where
+extract(year from d.order_date) = 2022
+and
+    d.is_valid = 1
+group by 1
+limit 5;
+
+#3. Bandingkan nilai transaksi dari masing-masing kategori pada tahun 2021 dengan 2022.
+# Sebutkan kategori apa saja yang mengalami peningkatan dan kategori apa yang mengalami
+# penurunan nilai transaksi dari tahun 2021 ke 2022. Gunakan is_valid = 1 untuk memfilter data transaksi.
+#Source table: order_detail, sku_detail
+
+# Menggabungkan tabel order_detail dan sku_detail
+with combined_table as (
+  select
+    od.id,
+    od.sku_id,
+    od.cogs,
+    od.base_price,
+    sd.category
+  from `projectbigquery-412811.finalprojectsql14.order_detail` od
+  join `projectbigquery-412811.finalprojectsql14.sku_detail` sd
+  on od.sku_id = sd.sku_id
+),
+
+# Memfilter data berdasarkan is_valid = 1
+filtered_table as (
+  select * from combined_table
+  where is_valid = 1
+),
+
+# Menghitung nilai transaksi per kategori per tahun
+year_category_total as (
+  select
+    year(order_date) as year,
+    category,
+    sum(quantity * unit_price) as total_value
+  from filtered_table
+  group by year, category
+),
+
+# Menghitung perubahan nilai transaksi per kategori
+category_change as (
+  select
+    year,
+    category,
+    total_value,
+    CASE
+      WHEN year = 2021 THEN total_value
+      ELSE total_value - lag(total_value, 1) OVER (PARTITION BY category ORDER BY year)
+    END AS change_in_value
+  from year_category_total
+)
+
+# Menampilkan hasil
+select *
+from category_change
+order by year, category
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
