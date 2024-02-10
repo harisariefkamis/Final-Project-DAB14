@@ -1,0 +1,199 @@
+select count(*) from order_detail; ---untuk menghitung total column order_detail keseluruhan
+select count(*) from customer_detail;
+select count(*) from sku_detail; 
+select count(*) from payment_detail; 
+
+select * from order_detail
+select * from customer_detail
+select * from sku_detail
+select * from payment_detail
+
+-- 1.Selama transaksi yang terjadi selama 2021, pada bulan apa total nilai transaksi
+--(after_discount) paling besar? Gunakan is_valid = 1 untuk memfilter data transaksi.
+--Source table: order_detail
+
+SELECT
+    EXTRACT(MONTH FROM order_date) AS Bulan,
+    SUM(after_discount) AS Total_Nilai_Transaksi
+FROM order_detail 	
+WHERE
+    EXTRACT(YEAR FROM order_date) = 2021
+    AND is_valid = 1
+GROUP BY
+    Bulan
+ORDER BY
+    Total_Nilai_Transaksi DESC
+LIMIT 1;
+
+--2.transaksi pada tahun 2022, kategori apa yang menghasilkan nilai transaksi paling
+--besar? Gunakan is_valid = 1 untuk memfilter data transaksi.
+--Source table: order_detail, sku_detail
+SELECT
+  sd.category AS category,
+  ROUND(SUM(od.after_discount)::DECIMAL,2) AS total_sales
+FROM order_detail  AS od
+LEFT JOIN sku_detail AS sd ON sd.id=od.sku_id
+WHERE is_valid = 1 
+AND od.order_date BETWEEN '2022-01-01' AND '2022-12-31'
+GROUP BY 1
+ORDER BY 2 desc;
+
+--3. Bandingkan nilai transaksi dari masing-masing kategori pada tahun 2021 dengan 2022. Sebutkan kategori apa
+--saja yang mengalami peningkatan dan kategori apa yang mengalami penurunan nilai transaksi dari tahun 2021 ke
+--2022. Gunakan is_valid = 1 untuk memfilter data transaksi.
+--Source table: order_detail, sku_detail
+
+SELECT
+	---membuat tabel dari sku_detail
+	sd.category AS category,
+	--total sales 2021
+	ROUND(SUM(CASE WHEN od.order_date BETWEEN '2021-01-01' AND '2022-12-31'
+		  THEN od.after_discount END)::DECIMAL,2) AS total_sales_2021,
+	--total sales 2022
+	ROUND(SUM(CASE WHEN od.order_date BETWEEN '2021-01-01' AND '2022-12-31'
+		  THEN od.after_discount END)::DECIMAL,2) AS total_sales_2022,
+	--Growth Value
+	ROUND(((SUM(CASE WHEN od.order_date BETWEEN '2021-01-01' AND '2022-12-31'
+		 			THEN od.after_discount END) -
+	ROUND(SUM(CASE WHEN od.order_date BETWEEN '2021-01-01' AND '2022-12-31'
+					THEN od.after_discount END))))::DECIMAL,2) AS growth_value
+---membuat tabel 1		  
+FROM order_detail od
+---membuat tabel dari kiri 2
+LEFT JOIN sku_detail sd ON sd.id = od.sku_id
+	--gunakan data valid 1
+	WHERE od.is_valid = 1
+	--mengelompokan tabel 1
+	GROUP BY 1
+	--data di urutkan secara menurun.
+	ORDER BY 4 DESC;
+
+--4. Tampilkan top 5 metode pembayaran yang paling populer digunakan selama 2022 (berdasarkan total unique
+--order). Gunakan is_valid = 1 untuk memfilter data transaksi.
+--Source table: order_detail, payment_method
+
+SELECT pd.payment_method AS metode_pembayaran,
+	   COUNT(DISTINCT od.id) AS total_order
+FROM order_detail AS od
+LEFT JOIN payment_detail pd ON pd.id = od.sku_id,
+WHERE 
+	order_date between '2022-01-01' AND '2022-12-31'
+AND is_valid = 1
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 5;
+
+-- 5. Urutkan dari ke-5 produk ini berdasarkan nilai transaksinya. Gunakan is_valid = 1 untuk
+--memfilter data transaksi. Source table: order_detail, sku_detail
+--1.Samsung
+--2.Apple
+--3.Sony
+--4.Huawei
+--5.Lenovo
+
+SELECT
+	od.id,
+	od.customer_id,
+	od.order_date,
+	od.sku_id,
+	od.qty_ordered,
+	od.after_discount,
+	od.is_valid,
+	sd.category,
+	sd.sku_name
+FROM order_detail AS od										-- tabel 1
+LEFT JOIN sku_detail AS sd ON sd.id = od.sku_id				-- tabel sumber 2 di hubungkan dengan sku_id
+WHERE order_date BETWEEN '2022-01-01' AND '2022-12-31'		-- melihat tahun
+AND is_valid = 1											--kriteria data valid
+	AND (LOWER (sd.sku_name) LIKE '%samsung%' OR			--and sd.category (LOWER (sd.sku_name) '%mobile tables%' OR.)
+	LOWER (sd.sku_name) LIKE '%apple%' OR
+	LOWER (sd.sku_name) LIKE '%sony%' OR
+	LOWER (sd.sku_name) LIKE '%huawei%' OR
+	LOWER (sd.sku_name) LIKE '%lenovo%')
+	 
+-- Pertanyaan 5
+-- membuat tabel sementara a
+--Menampilkan 5 brand (samsun,apple,sony,huawei,lenovo)
+WITH a AS (
+SELECT
+	CASE
+		WHEN LOWER (sd.sku_name) LIKE '%samsung%' THEN 'Samsung'
+		WHEN LOWER (sd.sku_name) LIKE '%apple%' OR LOWER(sd.sku_name) LIKE '%iphone%' THEN 'Apple'
+		WHEN LOWER (sd.sku_name) LIKE '%sony%' THEN 'Sony'
+		WHEN LOWER (sd.sku_name) LIKE '%huawei%' THEN 'Huawei'
+		WHEN LOWER (sd.sku_name) LIKE '%lenovo%' THEN 'Lenovo'
+	END AS product_brand,
+	--menghitung total after_discount
+	round(SUM(od.after_discount)::Decimal,2) AS total_sales
+FROM order_detail AS od										-- tabel 1
+LEFT JOIN sku_detail AS sd ON sd.id = od.sku_id				-- tabel sumber 2 di hubungkan dengan sku_id
+WHERE order_date Between '2022-01-01' and '2022-12-31'		-- kriteria tahun
+AND sd.category = 	'Mobiles & Tablets'						-- kriteria category
+AND is_valid = 1											-- data valid 1
+GROUP BY 1													-- mengelompokan data berdasarkan tabel
+)
+---Melakukan query pada tabel a
+SELECT a.*													-- Menampilkan semua kolom
+FROM a														-- tabel sumber sementara a
+WHERE product_brand NOTNULL									-- product_brand tidak NULL
+ORDER BY 2 DESC												-- Mengurutkan tabel berdasarkan kolom 2
+=======================================================================================================================================================
+CONTOH CODE NO 4 ADA 2 CODE	 
+SELECT * FROM order_detail
+SELECT count (*) FROM order_detail;
+SELECT * FROM payment_detail
+
+--4. Tampilkan top 5 metode pembayaran yang paling populer digunakan selama 2022 (berdasarkan total unique
+--order). Gunakan is_valid = 1 untuk memfilter data transaksi.
+--Source table: order_detail, payment_method
+SELECT pd.payment_method,
+	   COUNT(DISTINCT od.id) AS total_order
+FROM order_detail AS od
+LEFT JOIN payment_detail pd ON od.qty_ordered = od.payment_id
+WHERE order_date between '2022-01-01' and '2022-12-31'
+AND is_valid = 1
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 5;
+
+
+SELECT pd.payment_method AS metode_pembayaran,
+       COUNT(DISTINCT od.id) AS total_order
+FROM order_detail AS od
+LEFT JOIN payment_detail AS pd ON od.payment_id = pd.payment_method
+WHERE order_date BETWEEN '2022-01-01' AND '2022-12-31'
+AND is_valid = 1
+GROUP BY pd.payment_method
+ORDER BY 2 DESC
+LIMIT 5;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
