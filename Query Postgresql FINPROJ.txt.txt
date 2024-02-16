@@ -68,16 +68,17 @@ LEFT JOIN sku_detail sd ON sd.id = od.sku_id
 	--data di urutkan secara menurun.
 	ORDER BY 4 DESC;
 
---4. Tampilkan top 5 metode pembayaran yang paling populer digunakan selama 2022 (berdasarkan total unique
---order). Gunakan is_valid = 1 untuk memfilter data transaksi.
---Source table: order_detail, payment_method
 
-SELECT pd.payment_method AS metode_pembayaran,
+-- 4.Tampilkan top 5 metode pembayaran yang paling populer digunakan selama 2022 (berdasarkan total unique
+-- order). Gunakan is_valid = 1 untuk memfilter data transaksi.
+-- Source table: order_detail, payment_method
+
+
+SELECT pd.payment_method,
 	   COUNT(DISTINCT od.id) AS total_order
 FROM order_detail AS od
-LEFT JOIN payment_detail pd ON pd.id = od.sku_id,
-WHERE 
-	order_date between '2022-01-01' AND '2022-12-31'
+LEFT JOIN payment_detail pd ON pd.id = od.payment_id
+WHERE order_date between '2022-01-01' and '2022-12-31'
 AND is_valid = 1
 GROUP BY 1
 ORDER BY 2 DESC
@@ -111,7 +112,7 @@ AND is_valid = 1											--kriteria data valid
 	LOWER (sd.sku_name) LIKE '%huawei%' OR
 	LOWER (sd.sku_name) LIKE '%lenovo%')
 	 
--- Pertanyaan 5
+-- Pertanyaan no. 5
 -- membuat tabel sementara a
 --Menampilkan 5 brand (samsun,apple,sony,huawei,lenovo)
 WITH a AS (
@@ -138,34 +139,7 @@ FROM a														-- tabel sumber sementara a
 WHERE product_brand NOTNULL									-- product_brand tidak NULL
 ORDER BY 2 DESC												-- Mengurutkan tabel berdasarkan kolom 2
 =======================================================================================================================================================
-CONTOH CODE NO 4 ADA 2 CODE	 
-SELECT * FROM order_detail
-SELECT count (*) FROM order_detail;
-SELECT * FROM payment_detail
 
---4. Tampilkan top 5 metode pembayaran yang paling populer digunakan selama 2022 (berdasarkan total unique
---order). Gunakan is_valid = 1 untuk memfilter data transaksi.
---Source table: order_detail, payment_method
-SELECT pd.payment_method,
-	   COUNT(DISTINCT od.id) AS total_order
-FROM order_detail AS od
-LEFT JOIN payment_detail pd ON od.qty_ordered = od.payment_id
-WHERE order_date between '2022-01-01' and '2022-12-31'
-AND is_valid = 1
-GROUP BY 1
-ORDER BY 2 DESC
-LIMIT 5;
-
-
-SELECT pd.payment_method AS metode_pembayaran,
-       COUNT(DISTINCT od.id) AS total_order
-FROM order_detail AS od
-LEFT JOIN payment_detail AS pd ON od.payment_id = pd.payment_method
-WHERE order_date BETWEEN '2022-01-01' AND '2022-12-31'
-AND is_valid = 1
-GROUP BY pd.payment_method
-ORDER BY 2 DESC
-LIMIT 5;
 
 
 
