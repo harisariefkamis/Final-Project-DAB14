@@ -100,3 +100,47 @@ select * from `datasetharris.orders` where not city = 'Los Angeles'
 -- penulisan tanggal: yyyy-mm-dd
 -- tanggal_transaksi > '2024-01-22'
 -- tanggal_transaksi >= '2018-01-01' and tanggal_transaksi <= '2018-12-31'
+
+
+----- MINI TAKS ---
+-- Query transaksi yang merugikan saja yang terjadi di tahun 2018 hingga 2019
+-- di kota Los Angeles. diurutkan dari kerugian terbesar
+
+SELECT
+order_id,
+order_date,
+city,
+sales,
+profit,
+FROM `datasetharris.orders`
+WHERE city = 'Los Angeles'
+AND profit <0
+AND EXTRACT(YEAR FROM order_date) BETWEEN 2018 AND 2019
+ORDER BY profit ASC;
+----
+SELECT
+    order_id,
+    order_date,
+    city,
+    sales,
+    profit
+FROM `datasetharris.orders`
+WHERE city = 'Los Angeles'
+  AND profit < 0
+  AND EXTRACT(YEAR FROM order_date) BETWEEN 2018 AND 2019
+ORDER BY profit ASC;
+-- Query transaksi yang untung saja yang terjadi pada Q1 2018 di kota
+-- Henderson. diurutkan dari keuntungan terbesar
+SELECT
+order_id,
+order_date,
+city,
+sales,
+profit,
+FROM `datasetharris.orders`
+WHERE city = 'Henderson'
+AND profit > 0
+AND EXTRACT(YEAR FROM order_date) = 2018
+AND EXTRACT(QUARTER FROM order_date) = 1
+ORDER BY profit DESC;
+------
