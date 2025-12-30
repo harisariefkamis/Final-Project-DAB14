@@ -1,0 +1,102 @@
+-- QUERY BASIC SQL --
+
+SELECT * FROM `datasetharris.orders` LIMIT 5
+SELECT *
+FROM `datasetharris.orders` LIMIT 1000
+
+--- SELECT COLUMN ---
+SELECT
+order_id integer,
+customer_id string,
+postal_code string,
+FROM `datasetharris.orders`
+--- WHERE CATEGORY ---
+SELECT
+order_id,
+customer_id,
+sales,
+FROM `datasetharris.orders`
+WHERE category = "Office Supplies"
+--- WHERE CUSTOMER NAME ---
+SELECT
+order_id,
+customer_name,
+sales,
+FROM `datasetharris.orders`
+WHERE customer_name = "Brosina Hoffman"
+--- where quantity ---
+select
+order_date,
+customer_name,
+sales,
+from `datasetharris.orders`
+where sales = 100
+--- WHERE QUANTITY ---
+select
+order_date,
+customer_id,
+quantity,
+from `datasetharris.orders`
+where quantity >= 10
+--- MENCARI 2-CATEGORY ---
+SELECT *
+FROM `datasetharris.orders`
+where city = 'Los Angeles' and category ='Office Supplies'
+-- multiple condition
+-- syarat pasangan: rupawan DAN hartawan
+-- kondisi 1 rupawan tapi tidak hartawan FALSE
+-- kondisi 2 hartawan, tidak rupawan FALSE
+-- kondisi 3 hartawan tidak, rupawan tidak JELAS FALSE
+-- kondisi 4 hartawan DAN rupawan
+
+-- CONTOH DAN: MAKAN SIANG GRATIS-> KURANG MAMPU DAN MEMILIKI TANGGUNGAN DAN USIA MAKS 30 tahun
+
+-- OR atau
+
+-- kamu pergi ke warung, beli panther atau granita
+-- kondisi 1: panther ada, granita tidak ada -> TRUE beli
+-- kondisi 2: panther tidak ada, granita ada -> TRUE beli
+-- kondisi 3: panther ada, granita ada -> TRUE
+-- kondisi 4: panther tidak ada, granita tidak ada -> FALSE
+
+-- query semua transaksi di kota los angeles dan berasal dari category office supplies
+
+-- query semua transaksi yang berasal dari kota Los Angeles dan Waterloo ---
+select
+  *
+from
+  `datasetharris.orders`
+where
+  city = 'Los Angeles' or city = 'Waterloo'
+
+-- query transaksi yang berasal dari Customer Waterloo dan Home Office California
+SELECT *
+FROM `datasetharris.orders`
+WHERE
+  (
+    city = 'Waterloo'
+    OR (segment = 'Customer_name' AND city = 'California')
+    OR segment = 'Home Office'
+  );
+
+SELECT 
+  * 
+FROM `datasetharris.orders`
+WHERE
+    city = 'Waterloo' or segment = 'Customer_name' and city = 'California' or segment = 'Home Office'
+    
+select
+  *
+from
+  `datasetharris.orders`
+where
+  (city = "Waterloo" and segment = "Consumer") OR (city = "Los Angeles" and segment = "Home Office") 
+
+------ query semua transaksi yang tidak berasal dari kota los angeles
+
+select * from `datasetharris.orders` where not city = 'Los Angeles'
+
+-- memfilter tanggal
+-- penulisan tanggal: yyyy-mm-dd
+-- tanggal_transaksi > '2024-01-22'
+-- tanggal_transaksi >= '2018-01-01' and tanggal_transaksi <= '2018-12-31'
